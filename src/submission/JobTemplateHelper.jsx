@@ -9,18 +9,18 @@ function parameterValues(
     endFrame,
     framesPerTask
 ) {
-    var frameStarts;
-    var frameEnds;
+    var frameStart;
+    var frameEnd;
     var re = new RegExp("^[^#]*#{5}[^#]*$"); //checks for output patterns with [####] in them which usually indicates an image sequence
     var isSequence = false;
     isSequence = re.test(outputPath);
 
     if (framesPerTask < 1 || !isSequence) {
-        frameStarts = startFrame.toString();
-        frameEnds = endFrame.toString();
+        frameStart = startFrame.toString();
+        frameEnd = endFrame.toString();
     } else if (framesPerTask == 1) {
-        frameStarts = startFrame.toString() + "-" + endFrame.toString();
-        frameEnds = frameStarts;
+        frameStart = startFrame.toString() + "-" + endFrame.toString();
+        frameEnd = frameStart;
     } else {
         var frame = startFrame;
         var startArray = [];
@@ -30,17 +30,12 @@ function parameterValues(
             frame = Math.min(endFrame + 1, frame + framesPerTask);
             endArray.push((frame - 1).toString());
         }
-        frameStarts = startArray.join(",");
-        frameEnds = endArray.join(",");
+        frameStart = startArray.join(",");
+        frameEnd = endArray.join(",");
     }
 
-    return JSON.stringify({
-        parameterValues: [
-            {
-                name: "CondaPackages",
-                value: "aftereffects",
-            },
-            {
+    return {
+        parameterValues: [{
                 name: "deadline:targetTaskRunStatus",
                 value: "READY",
             },
@@ -69,22 +64,22 @@ function parameterValues(
                 value: outputPath,
             },
             {
-                name: "FrameStarts",
-                value: frameStarts,
+                name: "FrameStart",
+                value: frameStart,
             },
             {
-                name: "FrameEnds",
-                value: frameEnds,
+                name: "FrameEnd",
+                value: frameEnd,
             }
         ],
-    });
+    };
 }
 
 /**
  * Generates the basic format of the asset reference for job template.
  **/
 function jobAttachmentsJson(inputFiles, outputFolder) {
-    return JSON.stringify({
+    return {
         assetReferences: {
             inputs: {
                 directories: [],
@@ -95,7 +90,7 @@ function jobAttachmentsJson(inputFiles, outputFolder) {
             },
             referencedPaths: [],
         },
-    });
+    };
 }
 
 /**
@@ -152,4 +147,15 @@ function findJobAttachments(rootComp) {
         }
     }
     return attachments;
+}
+
+/**
+ * Write the JSON file to the file path
+ */
+function writeJSONFile(jsonData, filePath) {
+
+    var file = File(filePath);
+    file.open('w');
+    file.write(JSON.stringify(jsonData, null, 4));
+    file.close();
 }
