@@ -2,7 +2,8 @@
     "specificationVersion": "jobtemplate-2023-09",
     "name": "{{JOB_NAME}}",
     "description": "A simple job bundle that allows a user to select a project and comp to render with aerender.",
-    "parameterDefinitions": [{
+    "parameterDefinitions": [
+        {
             "name": "ProjectFile",
             "type": "PATH",
             "objectType": "FILE",
@@ -11,7 +12,8 @@
                 "control": "CHOOSE_INPUT_FILE",
                 "label": "Project file",
                 "groupLabel": "Source",
-                "fileFilters": [{
+                "fileFilters": [
+                    {
                         "label": "After Effects project files",
                         "patterns": [
                             "*.aep",
@@ -40,34 +42,35 @@
             "default": 1
         },
         {
-            "name": "OutputFile",
+            "name": "OutputDir",
             "type": "PATH",
-            "objectType": "FILE",
+            "objectType": "DIRECTORY",
             "dataFlow": "OUT",
             "userInterface": {
+                "control": "CHOOSE_DIRECTORY",
+                "label": "Output Directory",
+                "groupLabel": "Render Parameters"
+            },
+            "default": "./output",
+            "description": "Choose the render output directory."
+        },
+        {
+            "name": "OutputFileName",
+            "type": "STRING",
+            "userInterface": {
                 "control": "HIDDEN",
-                "label": "Output File",
-                "groupLabel": "Frame Range"
+                "label": "Output File Pattern",
+                "groupLabel": "Render Parameters"
             },
-            "default": "~\\Desktop\\output",
-            "description": "The render output destination"
+            "default": "output.mp4",
+            "description": "The file name used for aerender cmd. Not a changeable parameter."
         },
         {
-            "name": "FrameStart",
+            "name": "Frames",
             "type": "STRING",
             "userInterface": {
                 "control": "LINE_EDIT",
-                "label": "Start Frame",
-                "groupLabel": "Frame Range"
-            },
-            "default": "1-10"
-        },
-        {
-            "name": "FrameEnd",
-            "type": "STRING",
-            "userInterface": {
-                "control": "LINE_EDIT",
-                "label": "End Frame",
+                "label": "Start Frame - End Frame",
                 "groupLabel": "Frame Range"
             },
             "default": "1-10"
@@ -93,62 +96,51 @@
             "description": "If a queue accepts this parameter, it will create a conda virtual environment from it."
         }
     ],
-    "jobEnvironments": [{
-        "name": "Create Output Directories",
-        "description": "Create Output Directories",
-        "script": {
-            "actions": {
-                "onEnter": {
-                    "command": "powershell",
-                    "args": [
-                        "-File",
-                        "{{Param.JobScriptDir}}/start.ps1",
-                        "{{Param.OutputFile}}"
-                    ]
+    "jobEnvironments": [
+        {
+            "name": "Create Output Directories",
+            "description": "Create Output Directories",
+            "script": {
+                "actions": {
+                    "onEnter": {
+                        "command": "python",
+                        "args": [
+                            "{{Param.JobScriptDir}}/create_output_directory.py",
+                            "{{Param.OutputDir}}"
+                        ]
+                    }
                 }
             }
         }
-    }],
-    "steps": [{
-        "name": "{{COMP_NAME}}",
-        "hostRequirements": {
-            "attributes": [{
-                "name": "attr.worker.os.family",
-                "anyOf": [
-                    "windows",
-                    "macos"
+    ],
+    "steps": [
+        {
+            "name": "{{COMP_NAME}}",
+            "hostRequirements": {
+                "attributes": [
+                    {
+                        "name": "attr.worker.os.family",
+                        "anyOf": [
+                            "windows",
+                            "macos"
+                        ]
+                    }
                 ]
-            }]
-        },
-        "parameterSpace": {
-            "taskParameterDefinitions": [{
-                    "name": "FrameChunkStart",
-                    "type": "INT",
-                    "range": "{{Param.FrameStart}}"
-                },
-                {
-                    "name": "FrameChunkEnd",
-                    "type": "INT",
-                    "range": "{{Param.FrameEnd}}"
-                }
-            ],
-            "combination": "(FrameChunkStart, FrameChunkEnd)"
-        },
-        "script": {
-            "actions": {
-                "onRun": {
-                    "command": "powershell",
-                    "args": [
-                        "-File",
-                        "{{Param.JobScriptDir}}/aerender.ps1",
-                        "{{Param.ProjectFile}}",
-                        "{{Param.RenderQueueIndex}}",
-                        "{{Task.Param.FrameChunkStart}}",
-                        "{{Task.Param.FrameChunkEnd}}",
-                        "{{Param.OutputFile}}"
-                    ]
+            },
+            "script": {
+                "actions": {
+                    "onRun": {
+                        "command": "python",
+                        "args": [
+                            "{{Param.JobScriptDir}}/call_aerender.py",
+                            "{{Param.ProjectFile}}",
+                            "{{Param.RenderQueueIndex}}",
+                            "{{Param.OutputDir}}/{{Param.OutputFileName}}",
+                            "{{Param.Frames}}"
+                        ]
+                    }
                 }
             }
         }
-    }]
+    ]
 }
