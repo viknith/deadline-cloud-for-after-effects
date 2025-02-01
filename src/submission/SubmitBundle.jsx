@@ -106,18 +106,24 @@ function SubmitSelection(selection, framesPerTask) {
      * Generates parameter_values json file
      **/
     function generateParameterValues(bundlePath, outputFolder, outputFileName, isImageSeq) {
-        var parametersContents = parameterValues(
-            renderQueueIndex,
-            app.project.file.fsName,
-            outputFolder,
-            outputFileName,
-            isImageSeq,
-            startFrame,
-            endFrame,
-            framesPerTask
-        );
         var parametersOutDir = bundlePath + "/parameter_values.json";
-        writeFile(parametersOutDir, JSON.stringify(parametersContent, null, 4));
+        writeFile(
+            parametersOutDir,
+            JSON.stringify(
+                parameterValues(
+                    renderQueueIndex,
+                    app.project.file.fsName,
+                    outputFolder,
+                    outputFileName,
+                    isImageSeq,
+                    startFrame,
+                    endFrame,
+                    framesPerTask
+                ),
+                null,
+                4,
+            )
+        );
     }
 
     /**
