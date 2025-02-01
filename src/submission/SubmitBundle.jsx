@@ -99,7 +99,7 @@ function SubmitSelection(selection, framesPerTask) {
             sanitizedOutputFolder
         );
         var assetReferencesOutDir = bundlePath + "/asset_references.json";
-        writeFile(assetReferencesOutDir, JSON.stringify(jobAttachmentsContents));
+        writeFile(assetReferencesOutDir, JSON.stringify(jobAttachmentsContents, null, 4));
     }
 
     /**
@@ -117,7 +117,7 @@ function SubmitSelection(selection, framesPerTask) {
             framesPerTask
         );
         var parametersOutDir = bundlePath + "/parameter_values.json";
-        writeFile(parametersOutDir, JSON.stringify(parametersContents));
+        writeFile(parametersOutDir, JSON.stringify(parametersContent, null, 4));
     }
 
     /**
