@@ -1,9 +1,17 @@
 name: Test Release Notes
-on: workflow_dispatch
+on: 
+  workflow_dispatch:
+    inputs:
+      tag:
+        required: true
+        type: string
+        description: Test tag name (e.g., test-v1.0.0)
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - name: Generate Release Notes
@@ -15,3 +23,8 @@ jobs:
           } >> $GITHUB_ENV
       - name: Display Release Notes
         run: echo "$RELEASE_NOTES"
+      - name: Create Test Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create ${{ inputs.tag }} -t "Test Release ${{ inputs.tag }}" --notes "$RELEASE_NOTES" --prerelease
