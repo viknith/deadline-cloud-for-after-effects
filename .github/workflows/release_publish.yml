@@ -21,50 +21,14 @@ permissions:
   contents: read
 
 jobs:
-  TagRelease:
-    uses: aws-deadline/.github/.github/workflows/reusable_tag_release.yml@mainline
-    secrets: inherit
-    with:
-      tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
-
-  BuildAndStageInstallers:
-    needs: TagRelease
-    uses: aws-deadline/.github/.github/workflows/reusable_build_and_stage_installers.yml@mainline
-    secrets: inherit
-    permissions:
-      id-token: write
-      contents: read
-    with:
-      project_name: ${{ github.event.repository.name }}
-      tag: ${{ needs.TagRelease.outputs.tag }}
-      oses: "['Windows', 'MacOS']"
-
-  IsCondaReady:
-    needs: BuildAndStageInstallers
-    runs-on: ubuntu-latest
-    environment: release
-    name: “Is the Conda Package available in all ProdWaves and have you ran any required manual tests?”
-    steps:
-      - run: |
-         :
-
   Release:
-    needs: [TagRelease, IsCondaReady]
     runs-on: ubuntu-latest
     name: Release
     permissions:
       id-token: write
       contents: write
     environment: release
-    env:
-      TAG: ${{ needs.TagRelease.outputs.tag }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          ref: ${{env.TAG}}
-          fetch-depth: 0
-          token: ${{ secrets.CI_TOKEN }}
       - name: Generate Release Notes
         run: |
           {
